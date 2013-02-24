@@ -9,8 +9,9 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.Animation.AnimationListener;
 import android.view.animation.AnimationSet;
-import android.view.animation.RotateAnimation;
 import android.view.animation.ScaleAnimation;
 import android.view.animation.TranslateAnimation;
 import android.widget.Button;
@@ -38,11 +39,19 @@ public class QuestionFragment extends Fragment implements OnClickListener {
         	answerButtons[i].setOnClickListener(this);
         }
         
-        slideAnswersOn();
+        
+        // hack to get the start animation
+        answerButtons[2].post(new Runnable() {
+
+			@Override
+			public void run() {
+				slideAnswersOn();
+			}
+        });
         
         return v;
     }
-
+	
 	@Override
 	public void onClick(View v) {
 		switch (v.getId())
@@ -62,7 +71,13 @@ public class QuestionFragment extends Fragment implements OnClickListener {
 	public void answerClicked(View v) {
 		Log.d("Clicked", "Answer" + v.getId());
 		slideAnswersOff();
+		showAnswer();
+	}
+	
+	private void showAnswer()
+	{
 		rotate180Z(questionRL);
+		// switch text to the actual answer
 	}
 	
 	private void slideAnswersOff()
@@ -83,10 +98,10 @@ public class QuestionFragment extends Fragment implements OnClickListener {
 		for (int i = 0; i < answerButtons.length; ++i)
 		{
 			TranslateAnimation anim = new TranslateAnimation(-v.getWidth(), 0.0f, 0.0f, 0.0f);
-			anim.setDuration(200);
+			anim.setDuration(300);
 			anim.setFillBefore(true);
 			anim.setInterpolator(new AccelerateInterpolator());
-			anim.setStartOffset(i * 200);
+			anim.setStartOffset(750 + i * 200);
 			answerButtons[i].startAnimation(anim);
 		}
 	}
@@ -116,13 +131,45 @@ public class QuestionFragment extends Fragment implements OnClickListener {
 		float centerX = v.getWidth() / 2.0f;
 		float centerY = v.getHeight() / 2.0f;
 		
-		ScaleAnimation anim = new ScaleAnimation(1.0f, -1.0f, 1.0f, 1.0f, centerX, centerY);
-		anim.setDuration(400);
+		ScaleAnimation anim = new ScaleAnimation(1.0f, 0.0f, 1.0f, 1.0f, centerX, centerY);
+		anim.setDuration(200);
 		anim.setFillAfter(true); // maybe false with words working properly?
 		anim.setInterpolator(new AccelerateInterpolator());
 		anim.setStartOffset(600);
 		
+		ReAnimationListener ral = new ReAnimationListener();
+		ral.SetView(v);
+		anim.setAnimationListener(ral);
+		
 		v.startAnimation(anim);
+	}
+	
+	private class ReAnimationListener implements AnimationListener {
+		View v;
+		
+		public void SetView(View view)
+		{
+			v = view;
+		}
+		
+		@Override
+		public void onAnimationEnd(Animation animation) {
+			float centerX = v.getWidth() / 2.0f;
+			float centerY = v.getHeight() / 2.0f;
+			
+			ScaleAnimation anim = new ScaleAnimation(0.0f, 1.0f, 1.0f, 1.0f, centerX, centerY);
+			anim.setDuration(200);
+			anim.setFillAfter(true); // maybe false with words working properly?
+			anim.setInterpolator(new AccelerateInterpolator());
+			v.startAnimation(anim);
+		}
+
+		@Override
+		public void onAnimationRepeat(Animation animation) {}
+
+		@Override
+		public void onAnimationStart(Animation animation) {}
+		
 	}
 	
 }
