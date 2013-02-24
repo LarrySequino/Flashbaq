@@ -1,0 +1,8 @@
+<resources>
+    <color name="whiteColor">#ffffff</color>
+    <color name="blackColor">#000000</color>
+    <color name="blueColor">#0000FF</color>
+    <color name="cyan">#36f0f6</color>
+    <color name="transparentBlackColor">#CC000000</color>
+        
+</resources>

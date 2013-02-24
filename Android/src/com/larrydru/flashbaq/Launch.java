@@ -1,7 +1,9 @@
 package com.larrydru.flashbaq;
 
-import android.os.Bundle;
 import android.app.Activity;
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.view.Menu;
 
 public class Launch extends Activity {
@@ -10,6 +12,21 @@ public class Launch extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_launch);
+		
+		new CountDownTimer(300, 1) {
+			
+			public void onFinish() {
+		        Intent intent = new Intent( getApplicationContext(), QuestionActivity.class );
+		        startActivity( intent );
+		        finish();
+			}
+
+			@Override
+			public void onTick(long millisUntilFinished) {
+				//do nothing
+			}
+		}.start();
+
 	}
 
 	@Override
