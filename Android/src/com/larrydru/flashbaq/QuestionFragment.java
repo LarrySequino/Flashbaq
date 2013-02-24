@@ -24,6 +24,7 @@ public class QuestionFragment extends Fragment implements OnClickListener {
 	private RelativeLayout questionRL;
 	private TextView questionTV;
 	private View v;
+	// might wanna use a ActivityState enum to keep track of stuff
 	
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         v = inflater.inflate(R.layout.fragment_question, container, false);
@@ -145,23 +146,28 @@ public class QuestionFragment extends Fragment implements OnClickListener {
 	}
 	
 	private class ReAnimationListener implements AnimationListener {
-		View v;
+		View view;
 		
-		public void SetView(View view)
+		public void SetView(View v)
 		{
-			v = view;
+			view = v;
 		}
 		
 		@Override
 		public void onAnimationEnd(Animation animation) {
-			float centerX = v.getWidth() / 2.0f;
-			float centerY = v.getHeight() / 2.0f;
+			float centerX = this.view.getWidth() / 2.0f;
+			float centerY = this.view.getHeight() / 2.0f;
 			
 			ScaleAnimation anim = new ScaleAnimation(0.0f, 1.0f, 1.0f, 1.0f, centerX, centerY);
 			anim.setDuration(200);
 			anim.setFillAfter(true); // maybe false with words working properly?
 			anim.setInterpolator(new AccelerateInterpolator());
-			v.startAnimation(anim);
+			
+			PostAnimationListener pal = new PostAnimationListener();
+			pal.SetView(this.view);
+			anim.setAnimationListener(pal);
+			
+			this.view.startAnimation(anim);
 		}
 
 		@Override
@@ -169,7 +175,49 @@ public class QuestionFragment extends Fragment implements OnClickListener {
 
 		@Override
 		public void onAnimationStart(Animation animation) {}
+	}
+	
+	private class PostAnimationListener extends ReAnimationListener {
 		
+		@Override
+		public void onAnimationEnd(Animation animation) {
+			float halfScreen = v.getHeight() / 2.0f - this.view.getHeight() / 2.0f;
+			
+			TranslateAnimation anim = new TranslateAnimation(0.0f, 0.0f, 0.0f, halfScreen);
+			anim.setDuration(500);
+			anim.setFillAfter(true); // maybe false with words working properly?
+			
+			PostPostAnimationListener ppal = new PostPostAnimationListener();
+			ppal.SetView(this.view);
+			anim.setAnimationListener(ppal);
+			
+			this.view.startAnimation(anim);
+		}
+
+		@Override
+		public void onAnimationRepeat(Animation animation) {}
+
+		@Override
+		public void onAnimationStart(Animation animation) {}	
+	}
+	
+	private class PostPostAnimationListener extends ReAnimationListener {
+		@Override
+		public void onAnimationEnd(Animation animation) {
+			float halfScreen = v.getHeight() / 2.0f -  this.view.getHeight() / 2.0f;
+			
+			TranslateAnimation anim = new TranslateAnimation(0.0f, 0.0f, halfScreen, v.getHeight());
+			anim.setDuration(500);
+			anim.setFillAfter(true); // maybe false with words working properly?
+			anim.setStartOffset(1000);
+			this.view.startAnimation(anim);
+		}
+
+		@Override
+		public void onAnimationRepeat(Animation animation) {}
+
+		@Override
+		public void onAnimationStart(Animation animation) {}	
 	}
 	
 }
