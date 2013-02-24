@@ -2,6 +2,8 @@ package com.larrydru.flashbaq;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,12 +20,20 @@ import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-public class QuestionFragment extends Fragment implements OnClickListener {
+import com.siteunseen.piecebook.restclient.RESTCallBackListener;
+
+public class QuestionFragment extends Fragment implements OnClickListener, RESTCallBackListener {
 
 	private Button[] answerButtons = new Button[3];
 	private RelativeLayout questionRL;
 	private TextView questionTV;
 	private View v;
+	private QuestionActivity parentQuestionActivity = null;
+	private int myPlayerId = 1; // dru = 1
+	private int currentGameId = 1;
+	private int otherPlayersDeckId = 2;
+	private int myDeckId = 1;
+	
 	// might wanna use a ActivityState enum to keep track of stuff
 	
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -40,8 +50,7 @@ public class QuestionFragment extends Fragment implements OnClickListener {
         	answerButtons[i].setOnClickListener(this);
         }
         
-        
-        // hack to get the start animation
+        // hack to get the start animation to show
         answerButtons[2].post(new Runnable() {
 
 			@Override
@@ -49,6 +58,13 @@ public class QuestionFragment extends Fragment implements OnClickListener {
 				slideAnswersOn();
 			}
         });
+        
+        parentQuestionActivity = (QuestionActivity) this.getActivity();
+        
+        parentQuestionActivity.setRESTCallBackListener(this);
+        
+        parentQuestionActivity.downloadTheirDeck(currentGameId, otherPlayersDeckId);
+        parentQuestionActivity.downloadMyNextCard(myPlayerId, currentGameId);
         
         return v;
     }
@@ -62,6 +78,7 @@ public class QuestionFragment extends Fragment implements OnClickListener {
 			break;
 		case R.id.answer_two:
 			this.answerClicked(v);
+			//parentQuestionActivity.performCall(-1, 1, 1, 1);
 			break;
 		case R.id.answer_three:
 			this.answerClicked(v);
@@ -158,6 +175,8 @@ public class QuestionFragment extends Fragment implements OnClickListener {
 			float centerX = this.view.getWidth() / 2.0f;
 			float centerY = this.view.getHeight() / 2.0f;
 			
+			questionTV.setText(QuestionActivity.CardToAnswer.getCorrect_answer());
+			
 			ScaleAnimation anim = new ScaleAnimation(0.0f, 1.0f, 1.0f, 1.0f, centerX, centerY);
 			anim.setDuration(200);
 			anim.setFillAfter(true); // maybe false with words working properly?
@@ -210,6 +229,28 @@ public class QuestionFragment extends Fragment implements OnClickListener {
 			anim.setDuration(500);
 			anim.setFillAfter(true); // maybe false with words working properly?
 			anim.setStartOffset(1000);
+			
+			anim.setAnimationListener(new AnimationListener(){
+
+				@Override
+				public void onAnimationEnd(Animation animation) {
+					parentQuestionActivity.switchToPlayCard();
+				}
+
+				@Override
+				public void onAnimationRepeat(Animation animation) {
+					// TODO Auto-generated method stub
+					
+				}
+
+				@Override
+				public void onAnimationStart(Animation animation) {
+					// TODO Auto-generated method stub
+					
+				}
+				
+			});
+			
 			this.view.startAnimation(anim);
 		}
 
@@ -218,6 +259,49 @@ public class QuestionFragment extends Fragment implements OnClickListener {
 
 		@Override
 		public void onAnimationStart(Animation animation) {}	
+	}
+
+	@Override
+	public void onQueryComplete() {
+		// do nothing if we can
+	}
+
+	@Override
+	public void onQueryComplete(int id) {
+		switch(id) {
+		case QuestionActivity.NEXT_CARD_QUERY:
+			this.questionTV.setText(QuestionActivity.CardToAnswer.getQuestion());
+			UpdateScreenWithQuestionData();
+			break;
+		case QuestionActivity.THEIR_DECK_QUERY:
+			for (int i = 0; i < answerButtons.length; i++)
+			{
+				int randomIndex = (int)(Math.random() * QuestionActivity.CardsInDeck.size() - 1);
+				if (QuestionActivity.CardToAnswer != null && answerButtons[i].getText() == QuestionActivity.CardToAnswer.getCorrect_answer())
+				{
+					// do nothing
+				}
+				else
+				{
+					answerButtons[i].setText(QuestionActivity.CardsInDeck.get(randomIndex).getCorrect_answer());
+				}
+			}
+			break;
+		case QuestionActivity.GAME_OVER_QUERY:
+			// ask to start game?
+			break;
+		}
+	}
+
+	private void UpdateScreenWithQuestionData() {
+		int chooseMe = ((int)(Math.random() * 3.0f) % 3);
+		answerButtons[chooseMe].setText(QuestionActivity.CardToAnswer.getCorrect_answer());
+	}
+
+	@Override
+	public void onQueryFail() {
+		// TODO Auto-generated method stub
+		
 	}
 	
 }

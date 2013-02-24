@@ -3,6 +3,7 @@
 	<name>Flashbaq</name>
 	<comment></comment>
 	<projects>
+		<project>DrUtils</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
